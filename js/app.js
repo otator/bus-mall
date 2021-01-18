@@ -42,7 +42,7 @@ function getUserInput(event){
 
 //create the 20 image objects
 for(var i=0; i<imagesNames.length; i++){
-  new ImageObject(imagesNames[i], '../img/'+imagesNames[i]);
+  new ImageObject(imagesNames[i], 'img/'+imagesNames[i]);
 }
 
 function generateRandomNumber(min, max){
@@ -77,7 +77,7 @@ function showThreeImage(){
   }
   image1.src = ImageObject.prototype.imagesArray[index1].imageSource;
   ImageObject.prototype.imagesArray[index1].shownTimes+=1;
-
+  image1.setAttribute('src',ImageObject.prototype.imagesArray[index1].imageSource);
   image2.src = ImageObject.prototype.imagesArray[index2].imageSource;
   ImageObject.prototype.imagesArray[index2].shownTimes+=1;
 
