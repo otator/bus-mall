@@ -10,20 +10,21 @@
 
 <body>
   <header>
-    <img src="img/logo_placeholder.png" alt="logo">    
+    <img src="img/logo_placeholder.png" alt="logo">
     <h2>Bus Mall</h2>
 
   </header>
   <main>
     <form action="" id="form">
       <label for="input-filed-votes"></label>
-      <input type="number" min="1" placeholder="Enter times of voting" name="VoteTimesField" class="input-votes" required>
+      <input type="number" min="1" placeholder="Enter times of voting" name="VoteTimesField" class="input-votes"
+        required>
       <input type="submit" value="Submit" class="submit-button">
     </form>
-    <div class="container" id="container">     
+    <div class="container" id="container">
       <div class="result" id="result">
         <button onclick="showVotes()" id="show-result-button">Show Votes</button>
- 
+
       </div>
       <div class="inner-container">
 
@@ -38,8 +39,9 @@
         </div>
       </div>
     </div>
-    <div><canvas id="chart-id"></canvas></div>
-    
+    <div class="div-chart"><canvas id="chart-id"></canvas>
+      <canvas id="pie-chart"></canvas>
+    </div>
   </main>
   <footer>
     <!-- <h4>call Us:</h4>

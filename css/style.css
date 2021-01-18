@@ -95,7 +95,10 @@ input.input-votes{
   height: 25px;
   width: 120px;
 }
-#chart-id{
-  margin-top: 30%;
-  margin-left: 50%;
+
+.div-chart{
+  padding:10px;
+  display: grid;
+  column-gap: 15%;
+  grid-template-columns: 1fr 1fr;
 }

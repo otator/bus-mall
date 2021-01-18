@@ -119,6 +119,8 @@ function selectImage(event){
     }
     //call the function that will draw the chart after the voting is done.
     drawBar();
+    //draw the data as pie chart
+    drawPie();
   }
 }
 
@@ -193,6 +195,43 @@ function drawBar(){
     // Configuration options go here
     options: {}
   });
-  chart.canvas.parentNode.style.height = '800px';
-  chart.canvas.parentNode.style.width = '800px';
+  chart.canvas.parentNode.style.height = '700px';
+  chart.canvas.parentNode.style.width = '700px';
+}
+function drawPie(){
+  var ctx = document.getElementById('pie-chart').getContext('2d');
+  var myPieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: namesNoExtenstion,
+      datasets: [{
+        backgroundColor:['#F44336',
+          '#00ff00',
+          '#ff0000',
+          '#00ffff',
+          '#0000ff',
+          '#ff00ff',
+          '#800000',
+          '#808000',
+          '#200080',
+          '#ffff00',
+          '#003300',
+          '#FF8A80',
+          '#FF5252',
+          '#FF1744',
+          '#D50000',
+          '#E91E63',
+          '#FCE4EC',
+          '#F8BBD0',
+          '#CFD8DC',
+          '#B0BEC5',
+          '#000066',
+          '#006666',
+          '#cc3300',
+          '#66ffff',],
+        data: votesArray
+      }],
+      // These labels appear in the legend and in the tooltips when hovering different arcs
+    },
+  });
 }
