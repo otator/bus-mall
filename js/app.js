@@ -17,7 +17,7 @@ var mainForm = document.getElementById('form');
 
 function ImageObject(name, imageSource){
   //extract only the name form the image name, not with the extension
-  this.name = name.split(0, name.length-4);
+  this.name = name.slice(0, name.length-4);
   this.imagesArray.push(this);
   this.imageSource = imageSource;
   this.votes = 0;
