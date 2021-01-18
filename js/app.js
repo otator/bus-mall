@@ -8,13 +8,15 @@ var image2 = document.getElementById('img2');
 var image3 = document.getElementById('img3');
 var resultContainer = document.getElementById('result');
 var index1, index2, index3;
-var attemptsOfVoting = 25;
+var attemptsOfVoting = 10;
 var votingTimes = 0;
 var resultButton = document.getElementById('show-result-button');
 var mainForm = document.getElementById('form');
 
-
-
+var namesNoExtenstion = [];
+var votesArray = [];
+var shownArray = [];
+var arrOfUniques=[-1,-1,-1];
 function ImageObject(name, imageSource){
   //extract only the name form the image name, not with the extension
   this.name = name.slice(0, name.length-4);
@@ -22,6 +24,7 @@ function ImageObject(name, imageSource){
   this.imageSource = imageSource;
   this.votes = 0;
   this.shownTimes = 0;
+  namesNoExtenstion.push(this.name);
 }
 ImageObject.prototype.imagesArray = [];
 
@@ -46,15 +49,31 @@ function generateRandomNumber(min, max){
   return Math.floor(Math.random() * max) + min;
 }
 
-var condition;
 function showThreeImage(){
-  condition = true;
-  while(condition){
+  var flag;
+  //loop until finding the desired images
+  while(true){
+    flag = false;
+    //generates 3 random indices to get images using them.
     index1 = generateRandomNumber(0, imagesNames.length);
     index2 = generateRandomNumber(0, imagesNames.length);
     index3 = generateRandomNumber(0, imagesNames.length);
-    if(index1 !== index2 && index2 !== index3 && index1 !== index3)
-      condition = false;
+
+    //first make sure that the indices are different from each other
+    if(index1 !== index2 && index2 !== index3 && index1 !== index3){
+      //then check if any of the indices shown in the previous time.
+      for(var i=0; i<arrOfUniques.length;i++){
+        if(arrOfUniques[i] === index1 || arrOfUniques[i] === index2 || arrOfUniques[i] ===index3){
+          flag = true;
+          //break the loop once we got similar image
+          break;
+        }
+      }
+      if(!flag){
+        arrOfUniques = [index1, index2, index3];
+        break;
+      }
+    }
   }
   image1.src = ImageObject.prototype.imagesArray[index1].imageSource;
   ImageObject.prototype.imagesArray[index1].shownTimes+=1;
@@ -88,8 +107,18 @@ function selectImage(event){
       showThreeImage();
     }
 
-  }else if(votingTimes === attemptsOfVoting){
+  }else if(votingTimes === attemptsOfVoting){//when voting is done
+    //display the button that show the results
     resultButton.style.display = 'block';
+
+    for(var v=0; v<ImageObject.prototype.imagesArray.length; v++){
+      //push the votes to an array so it can be used as chart data
+      votesArray.push(ImageObject.prototype.imagesArray[v].votes);
+      //psuh the shown times toan array, so it can be used later
+      shownArray.push(ImageObject.prototype.imagesArray[v].shownTimes);
+    }
+    //call the function that will draw the chart after the voting is done.
+    drawBar();
   }
 }
 
@@ -125,7 +154,7 @@ function showVotes(){
         if(imageVotes > 0){
           listItem = document.createElement('li');
           //create the list element with the content
-          listItem.textContent = 'image ' + imageName + ', votes: ' + imageVotes + ', shown:' + imageShownTimes + ', percentage: ' + (imageVotes/imageShownTimes*100).toFixed(2) + '%';
+          listItem.textContent = '• ' + imageName + ', votes: ' + imageVotes + ', shown:' + imageShownTimes + ', percentage: ' + (imageVotes/imageShownTimes*100).toFixed(2) + '%';
           //add the li to the ul
           listOfResult.appendChild(listItem);
         }
@@ -136,4 +165,34 @@ function showVotes(){
       container.removeEventListener('click', selectImage);
     }
   }
+}
+
+function drawBar(){
+  var ctx = document.getElementById('chart-id').getContext('2d');
+  var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'bar',
+
+    // The data for our dataset
+    data: {
+      labels: namesNoExtenstion,
+      datasets: [{
+        label: 'votes',
+        backgroundColor: 'rgb(179, 255, 0)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: votesArray
+      },
+      {
+        label: 'shown times',
+        backgroundColor: 'rgb(0, 0, 0)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: votesArray}
+      ]
+    },
+
+    // Configuration options go here
+    options: {}
+  });
+  chart.canvas.parentNode.style.height = '800px';
+  chart.canvas.parentNode.style.width = '800px';
 }
