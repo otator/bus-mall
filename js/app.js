@@ -8,7 +8,7 @@ var image2 = document.getElementById('img2');
 var image3 = document.getElementById('img3');
 var resultContainer = document.getElementById('result');
 var index1, index2, index3;
-var attemptsOfVoting = 10;
+var attemptsOfVoting = 25;
 var votingTimes = 0;
 var resultButton = document.getElementById('show-result-button');
 var mainForm = document.getElementById('form');
