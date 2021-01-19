@@ -1,7 +1,15 @@
 'use strict';
-
+//first check if there is stored data in localStorage
+var isStoredData;
+var products;
+if(localStorage.getItem('products') !== null){
+  isStoredData = true;
+  products = JSON.parse(localStorage.getItem('products'));
+}else{
+  isStoredData = false;
+}
+var firstTimeVoting = false;
 var imagesNames =['bag.jpg', 'banana.jpg', 'bathroom.jpg', 'boots.jpg', 'breakfast.jpg', 'bubblegum.jpg', 'chair.jpg', 'cthulhu.jpg', 'dog-duck.jpg', 'dragon.jpg', 'pen.jpg', 'pet-sweep.jpg', 'scissors.jpg', 'shark.jpg', 'sweep.png' , 'tauntaun.jpg', 'unicorn.jpg', 'usb.gif', 'water-can.jpg', 'wine-glass.jpg'];
-
 var container = document.getElementById('container');
 var image1 = document.getElementById('img1');
 var image2 = document.getElementById('img2');
@@ -12,21 +20,24 @@ var attemptsOfVoting = 25;
 var votingTimes = 0;
 var resultButton = document.getElementById('show-result-button');
 var mainForm = document.getElementById('form');
-
+var listOfResult = document.createElement('ul');
 var namesNoExtenstion = [];
 var votesArray = [];
 var shownArray = [];
 var arrOfUniques=[-1,-1,-1];
-function ImageObject(name, imageSource){
+function ImageObject(name, imageSource, votes, shownTimes){
   //extract only the name form the image name, not with the extension
-  this.name = name.slice(0, name.length-4);
-  this.imagesArray.push(this);
+  //since the objects that come from the local storage, has the names without the extension
+  this.name = name;
+  if(name.includes('.'))//remove the extension only if it exists
+    this.name = name.slice(0, name.length-4);
+  imagesArray.push(this);
   this.imageSource = imageSource;
-  this.votes = 0;
-  this.shownTimes = 0;
+  this.votes = votes;
+  this.shownTimes = shownTimes;
   namesNoExtenstion.push(this.name);
 }
-ImageObject.prototype.imagesArray = [];
+var imagesArray = [];
 
 
 mainForm.addEventListener('submit', getUserInput);
@@ -41,8 +52,14 @@ function getUserInput(event){
 
 
 //create the 20 image objects
-for(var i=0; i<imagesNames.length; i++){
-  new ImageObject(imagesNames[i], 'img/'+imagesNames[i]);
+if(isStoredData){//if there is stored data recreate the objects for this data.
+  for(var i=0; i<products.length; i++){
+    new ImageObject(products[i].name, products[i].imageSource, products[i].votes, products[i].shownTimes);
+  }
+}else{
+  for(i=0; i<imagesNames.length; i++){//for the first time, create the objects with 0 for votes and shown times.
+    new ImageObject(imagesNames[i], 'img/'+imagesNames[i],0,0);
+  }
 }
 
 function generateRandomNumber(min, max){
@@ -65,28 +82,32 @@ function showThreeImage(){
       for(var i=0; i<arrOfUniques.length;i++){
         if(arrOfUniques[i] === index1 || arrOfUniques[i] === index2 || arrOfUniques[i] ===index3){
           flag = true;
-          //break the loop once we got similar image
+          //break the loop once we get similar image
           break;
         }
       }
       if(!flag){
         arrOfUniques = [index1, index2, index3];
         break;
+        //back to while loop
       }
     }
   }
-  image1.src = ImageObject.prototype.imagesArray[index1].imageSource;
-  ImageObject.prototype.imagesArray[index1].shownTimes+=1;
-  image1.setAttribute('src',ImageObject.prototype.imagesArray[index1].imageSource);
-  image2.src = ImageObject.prototype.imagesArray[index2].imageSource;
-  ImageObject.prototype.imagesArray[index2].shownTimes+=1;
 
-  image3.src = ImageObject.prototype.imagesArray[index3].imageSource;
-  ImageObject.prototype.imagesArray[index3].shownTimes+=1;
+  //show the images in the page using src property
+  image1.src = imagesArray[index1].imageSource;
+  imagesArray[index1].shownTimes+=1;
+
+  image2.src = imagesArray[index2].imageSource;
+  imagesArray[index2].shownTimes+=1;
+
+  image3.src = imagesArray[index3].imageSource;
+  imagesArray[index3].shownTimes+=1;
 }
+// call the function that shows 3 new images.
 showThreeImage();
 
-//set event listener for the div that container the images
+//set event listener for the div that contains the images
 container.addEventListener('click', selectImage);
 
 var imageId = '';
@@ -95,32 +116,31 @@ function selectImage(event){
   if(votingTimes < attemptsOfVoting){
     votingTimes+=1;
     if(imageId === 'img1'){
-      ImageObject.prototype.imagesArray[index1].votes+=1;
+      imagesArray[index1].votes+=1;
       showThreeImage();
     }
     else if(imageId === 'img2'){
-      ImageObject.prototype.imagesArray[index2].votes+=1;
+      imagesArray[index2].votes+=1;
       showThreeImage();
     }
     else if(imageId === 'img3'){
-      ImageObject.prototype.imagesArray[index3].votes+=1;
+      imagesArray[index3].votes+=1;
       showThreeImage();
     }
 
   }else if(votingTimes === attemptsOfVoting){//when voting is done
     //display the button that show the results
+    localStorage.setItem('products', JSON.stringify(imagesArray));
     resultButton.style.display = 'block';
 
-    for(var v=0; v<ImageObject.prototype.imagesArray.length; v++){
+    for(var v=0; v<imagesArray.length; v++){
       //push the votes to an array so it can be used as chart data
-      votesArray.push(ImageObject.prototype.imagesArray[v].votes);
+      votesArray.push(imagesArray[v].votes);
       //psuh the shown times toan array, so it can be used later
-      shownArray.push(ImageObject.prototype.imagesArray[v].shownTimes);
+      shownArray.push(imagesArray[v].shownTimes);
     }
-    //call the function that will draw the chart after the voting is done.
-    drawBar();
-    //draw the data as pie chart
-    drawPie();
+    firstTimeVoting = true;
+    showChartsAndList(isStoredData);
   }
 }
 
@@ -138,32 +158,8 @@ function showVotes(){
       alert('keep voting');
       onlyOnce = true;
     }else{
-      var listOfResult = document.createElement('ul');
-      //create list item li;
-      var listItem;
-      var imageVotes;
-      var imageShownTimes;
-      var imageName;
-      //looping over the images objects
-      for(var item=0; item<ImageObject.prototype.imagesArray.length; item++){
-        //getting the votes out of the objects
-        imageVotes = ImageObject.prototype.imagesArray[item].votes;
-        //getting the shown time that image has been shown to the user
-        imageShownTimes = ImageObject.prototype.imagesArray[item].shownTimes;
-        //getting the name of the image as well
-        imageName = ImageObject.prototype.imagesArray[item].name;
-        //choose only the images with votes
-        if(imageVotes > 0){
-          listItem = document.createElement('li');
-          //create the list element with the content
-          listItem.textContent = '• ' + imageName + ', votes: ' + imageVotes + ', shown:' + imageShownTimes + ', percentage: ' + (imageVotes/imageShownTimes*100).toFixed(2) + '%';
-          //add the li to the ul
-          listOfResult.appendChild(listItem);
-        }
-      }
-      //adding the result list the parent container
-      resultContainer.appendChild(listOfResult);
-      //remove the event listeber once the reult has been shown
+      //remove the ul from its parent, for no doublication.
+      showList();
       container.removeEventListener('click', selectImage);
     }
   }
@@ -188,8 +184,8 @@ function drawBar(){
         label: 'shown times',
         backgroundColor: 'rgb(0, 0, 0)',
         borderColor: 'rgb(255, 99, 132)',
-        data: votesArray}
-      ]
+        data: shownArray
+      }]
     },
 
     // Configuration options go here
@@ -235,3 +231,55 @@ function drawPie(){
     },
   });
 }
+
+function showList(){
+  //create list item li;
+  var listItem;
+  var imageVotes;
+  var imageShownTimes;
+  var imageName;
+  //looping over the images objects
+  for(var item=0; item<imagesArray.length; item++){
+    //getting the votes out of the objects
+    imageVotes = imagesArray[item].votes;
+    //getting the shown time that image has been shown to the user
+    imageShownTimes = imagesArray[item].shownTimes;
+    //getting the name of the image as well
+    imageName = imagesArray[item].name;
+    //choose only the images with votes
+
+    listItem = document.createElement('li');
+    //create the list element with the content
+    listItem.textContent = ' • ' + imageName + ', votes: ' + imageVotes + ', shown:' + imageShownTimes + ', percentage: ' + (imageVotes/imageShownTimes*100).toFixed(2) + '%';
+    //add the li to the ul
+    listOfResult.appendChild(listItem);
+  }
+  //adding the result list the parent container
+  resultContainer.appendChild(listOfResult);
+  //remove the event listeber once the reult has been shown
+}
+
+//show the charts for stored data
+function showChartsAndList(isStoredData){
+  if(isStoredData){
+    votesArray = [];
+    shownArray = [];
+    for(i=0; i<imagesArray.length; i++){
+      votesArray.push(imagesArray[i].votes);
+      shownArray.push(imagesArray[i].shownTimes);
+    }
+    //call the function that will draw the chart after the voting is done.
+    drawBar();
+    //draw the data as pie chart
+    drawPie();
+
+  }else{
+    if(firstTimeVoting){
+      //call the function that will draw the chart after the voting is done.
+      drawBar();
+      //draw the data as pie chart
+      drawPie();
+    }
+  }
+}
+showChartsAndList(isStoredData);
